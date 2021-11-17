@@ -51,5 +51,5 @@ jobs:
       - name: Run linters
         run: |
             source .venv/bin/activate
-            black --skip-string-normalization app
             mypy --ignore-missing-imports app
+            pylint main.py app
