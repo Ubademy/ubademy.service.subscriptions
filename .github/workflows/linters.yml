@@ -2,7 +2,7 @@ name: Linters
 
 on:
   push:
-    branches: [None]
+    branches: [master]
 
 jobs:
   test:

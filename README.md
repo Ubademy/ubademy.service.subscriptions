@@ -1,7 +1,7 @@
-# ubademy.service.pytemplate
-[![codecov](https://codecov.io/gh/Ubademy/ubademy.service.courses/branch/master/graph/badge.svg?token=T726IGKKWO)](https://codecov.io/gh/Ubademy/ubademy.service.courses) [![Tests](https://github.com/Ubademy/ubademy.service.courses/actions/workflows/test.yml/badge.svg)](https://github.com/Ubademy/ubademy.service.courses/actions/workflows/test.yml) [![Linters](https://github.com/Ubademy/ubademy.service.courses/actions/workflows/linters.yml/badge.svg)](https://github.com/Ubademy/ubademy.service.courses/actions/workflows/linters.yml) [![Deploy](https://github.com/Ubademy/ubademy.service.courses/actions/workflows/deploy.yml/badge.svg)](https://github.com/Ubademy/ubademy.service.courses/actions/workflows/deploy.yml)
+# ubademy.service.subscriptions
+[![codecov](https://codecov.io/gh/Ubademy/ubademy.service.subscriptions/branch/master/graph/badge.svg?token=QW73TC1O31)](https://codecov.io/gh/Ubademy/ubademy.service.subscriptions) [![Tests](https://github.com/Ubademy/ubademy.service.subscriptions/actions/workflows/test.yml/badge.svg)](https://github.com/Ubademy/ubademy.service.subscriptions/actions/workflows/test.yml) [![Linters](https://github.com/Ubademy/ubademy.service.subscriptions/actions/workflows/linters.yml/badge.svg)](https://github.com/Ubademy/ubademy.service.subscriptions/actions/workflows/linters.yml) [![Deploy](https://github.com/Ubademy/ubademy.service.subscriptions/actions/workflows/deploy.yml/badge.svg)](https://github.com/Ubademy/ubademy.service.subscriptions/actions/workflows/deploy.yml)
 
-This is a template repository for a REST api on python.
+This is subscriptions microservice.
 
 ## Technologies
 
