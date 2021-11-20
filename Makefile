@@ -15,7 +15,7 @@ update:
 	$(POETRY) update
 	$(POETRY_EXPORT)
 
-test: install  
+test: install
 	$(MYPY) main.py ./${PACKAGE}/
 	$(PYTEST) -vv
 

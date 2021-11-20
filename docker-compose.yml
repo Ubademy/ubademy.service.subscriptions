@@ -2,7 +2,7 @@ version: "3.3"
 
 services:
   db:
-    container_name: db
+    container_name: dbsubs
     image: postgres:latest
     ports:
       - "5432:5432"
@@ -12,12 +12,13 @@ services:
       - POSTGRES_PASSWORD=password
 
   api:
-    container_name: api
+    container_name: apisubs
     build:
       context: .
       dockerfile: Dockerfile
     environment:
       DATABASE_URL: postgresql://user:password@db:5432/db
+      MICROSERVICES: ${MICROSERVICES}
     ports:
       - "8000:8000"
     depends_on:

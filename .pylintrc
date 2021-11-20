@@ -14,3 +14,4 @@ disable=
     E0611, # no-name-in-module
     R0401, # cyclic-import
     R0801, # duplicate-code
+    C0301, # line-too-long
