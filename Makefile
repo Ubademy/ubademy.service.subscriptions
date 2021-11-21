@@ -27,7 +27,7 @@ lint:
 	$(PYLINT) main.py ./${PACKAGE}
 
 build:
-	$ docker rm db
+	$ docker rm dbsubs
 	$ docker-compose build
 
 run:

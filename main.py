@@ -10,7 +10,10 @@ from fastapi import Depends, FastAPI, HTTPException, status
 from sqlalchemy.orm.session import Session
 from starlette.requests import Request
 
-from app.domain.enrollment.enrollment_exception import UserAlreadyEnrolledError
+from app.domain.enrollment.enrollment_exception import (
+    UserAlreadyEnrolledError,
+    UserNotEnrolledError,
+)
 from app.domain.enrollment.enrollment_repository import EnrollmentRepository
 from app.domain.user.user_exception import (
     InvalidCredentialsError,
@@ -30,6 +33,7 @@ from app.presentation.schema.course.course_error_message import (
 )
 from app.presentation.schema.enrollment.enrollment_error_message import (
     ErrorMessageUserAlreadyEnrolled,
+    ErrorMessageUserNotEnrolled,
 )
 from app.presentation.schema.user.enrollment_error_message import (
     ErrorMessageInvalidCredentials,
@@ -89,7 +93,7 @@ except KeyError as e:
 
 
 @app.post(
-    "/subscriptions/enroll",
+    "/subscriptions/{course_id}/enrollments",
     response_model=EnrollmentReadModel,
     status_code=status.HTTP_201_CREATED,
     responses={
@@ -109,6 +113,38 @@ async def enroll_user(
     except UserAlreadyEnrolledError as e:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
+            detail=e.message,
+        )
+    except Exception as e:
+        logger.error(e)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
+
+    return enrollment
+
+
+@app.patch(
+    "/subscriptions/{course_id}/enrollments/{user_id}",
+    response_model=EnrollmentReadModel,
+    status_code=status.HTTP_200_OK,
+    responses={
+        status.HTTP_409_CONFLICT: {
+            "model": ErrorMessageUserNotEnrolled,
+        },
+    },
+    tags=["enrollments"],
+)
+async def unenroll_user(
+    course_id: str,
+    user_id: str,
+    enr_command: EnrollmentCommandUseCase = Depends(enrollment_command_usecase),
+):
+    try:
+        enrollment = enr_command.unenroll(user_id=user_id, course_id=course_id)
+    except UserNotEnrolledError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
             detail=e.message,
         )
     except Exception as e:
@@ -150,7 +186,7 @@ def get_courses(cids, limit, offset):
 
 
 @app.get(
-    "/subscriptions/enrollments/course",
+    "/subscriptions/{course_id}/enrollments/course",
     response_model=PaginatedUserReadModel,
     status_code=status.HTTP_200_OK,
     responses={
@@ -165,14 +201,14 @@ def get_courses(cids, limit, offset):
 )
 async def get_users_enrolled(
     request: Request,
-    id: str,
+    course_id: str,
     only_active: bool = True,
     limit: int = 50,
     offset: int = 0,
     enr_query: EnrollmentQueryUseCase = Depends(enrollment_query_usecase),
 ):
     try:
-        users = enr_query.fetch_students_from_course(id=id, only_active=only_active)
+        users = enr_query.fetch_users_from_course(id=course_id, only_active=only_active)
         server_response = get_users(
             uids=users, request=request, limit=limit, offset=offset
         )
@@ -198,7 +234,7 @@ async def get_users_enrolled(
 
 
 @app.get(
-    "/subscriptions/enrollments/student",
+    "/subscriptions/{user_id}/enrollments/user",
     response_model=PaginatedCourseReadModel,
     status_code=status.HTTP_200_OK,
     responses={
@@ -209,14 +245,14 @@ async def get_users_enrolled(
     tags=["enrollments"],
 )
 async def get_courses_enrolled(
-    id: str,
+    user_id: str,
     only_active: bool = True,
     limit: int = 50,
     offset: int = 0,
     enr_query: EnrollmentQueryUseCase = Depends(enrollment_query_usecase),
 ):
     try:
-        courses = enr_query.fetch_courses_from_student(id=id, only_active=only_active)
+        courses = enr_query.fetch_courses_from_user(id=user_id, only_active=only_active)
         server_response = get_courses(cids=courses, limit=limit, offset=offset)
 
     except StudentNotEnrolledError as e:

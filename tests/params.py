@@ -67,6 +67,16 @@ def already_enrolled(id=None, user_id=None, course_id=None, active=None):
     return True
 
 
+mocked_enr_1_active = MagicMock()
+mocked_enr_1_active.one = Mock(return_value=enr_dto_1_active)
+
+
+def filter_by_id_user_1_course_1(user_id=None, course_id=None, active=None):
+    if user_id == "user_1" and course_id == "course_1" and active:
+        return mocked_enr_1_active
+    raise NoResultFound
+
+
 def filter_by_user_id(user_id: str):
     filtered.clear()
     for i in enrollment_dtos:

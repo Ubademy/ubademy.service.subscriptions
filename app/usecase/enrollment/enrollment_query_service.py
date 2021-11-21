@@ -10,5 +10,5 @@ class EnrollmentQueryService(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def fetch_enrollments_from_student(self, id: str) -> List[EnrollmentReadModel]:
+    def fetch_enrollments_from_user(self, id: str) -> List[EnrollmentReadModel]:
         raise NotImplementedError

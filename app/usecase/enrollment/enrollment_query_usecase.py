@@ -10,11 +10,11 @@ from .enrollment_query_service import EnrollmentQueryService
 
 class EnrollmentQueryUseCase(ABC):
     @abstractmethod
-    def fetch_students_from_course(self, id: str, only_active: bool) -> List[str]:
+    def fetch_users_from_course(self, id: str, only_active: bool) -> List[str]:
         raise NotImplementedError
 
     @abstractmethod
-    def fetch_courses_from_student(self, id: str, only_active: bool) -> List[str]:
+    def fetch_courses_from_user(self, id: str, only_active: bool) -> List[str]:
         raise NotImplementedError
 
 
@@ -22,7 +22,7 @@ class EnrollmentQueryUseCaseImpl(EnrollmentQueryUseCase):
     def __init__(self, enrollment_query_service: EnrollmentQueryService):
         self.enrollment_query_service: EnrollmentQueryService = enrollment_query_service
 
-    def fetch_students_from_course(self, id: str, only_active: bool) -> List[str]:
+    def fetch_users_from_course(self, id: str, only_active: bool) -> List[str]:
         try:
             enrollments = self.enrollment_query_service.fetch_enrollments_from_course(
                 id
@@ -38,11 +38,9 @@ class EnrollmentQueryUseCaseImpl(EnrollmentQueryUseCase):
 
         return r
 
-    def fetch_courses_from_student(self, id: str, only_active: bool) -> List[str]:
+    def fetch_courses_from_user(self, id: str, only_active: bool) -> List[str]:
         try:
-            enrollments = self.enrollment_query_service.fetch_enrollments_from_student(
-                id
-            )
+            enrollments = self.enrollment_query_service.fetch_enrollments_from_user(id)
             if only_active:
                 enrollments = list(filter(lambda enr: enr.is_active(), enrollments))
             if len(enrollments) == 0:
