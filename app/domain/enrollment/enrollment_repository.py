@@ -16,3 +16,7 @@ class EnrollmentRepository(ABC):
     @abstractmethod
     def find_by_id(self, uuid: str) -> Optional[Enrollment]:
         raise NotImplementedError
+
+    @abstractmethod
+    def unenroll(self, user_id: str, course_id: str) -> Optional[Enrollment]:
+        raise NotImplementedError
