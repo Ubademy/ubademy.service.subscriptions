@@ -15,6 +15,12 @@ from app.domain.enrollment.enrollment_exception import (
     UserNotEnrolledError,
 )
 from app.domain.enrollment.enrollment_repository import EnrollmentRepository
+from app.domain.subscription.subscription_exception import (
+    SubTypeNotFoundError,
+    UserAlreadySubscribedError,
+    UserNotSubscribedError,
+)
+from app.domain.subscription.subscription_repository import SubscriptionRepository
 from app.domain.user.user_exception import (
     InvalidCredentialsError,
     NoStudentsInCourseError,
@@ -31,12 +37,21 @@ from app.infrastructure.enrollment.enrollment_repository import (
 from app.infrastructure.subscription.subscription_query_service import (
     SubscriptionQueryServiceImpl,
 )
+from app.infrastructure.subscription.subscription_repository import (
+    SubscriptionCommandUseCaseUnitOfWorkImpl,
+    SubscriptionRepositoryImpl,
+)
 from app.presentation.schema.course.course_error_message import (
     ErrorMessageCourseNotFound,
 )
 from app.presentation.schema.enrollment.enrollment_error_message import (
     ErrorMessageUserAlreadyEnrolled,
     ErrorMessageUserNotEnrolled,
+)
+from app.presentation.schema.subscription.subscription_error_message import (
+    ErrorMessageSubTypeNotFound,
+    ErrorMessageUserAlreadySubscribed,
+    ErrorMessageUserNotSubscribed,
 )
 from app.presentation.schema.user.enrollment_error_message import (
     ErrorMessageInvalidCredentials,
@@ -53,7 +68,15 @@ from app.usecase.enrollment.enrollment_query_usecase import (
     EnrollmentQueryUseCase,
     EnrollmentQueryUseCaseImpl,
 )
-from app.usecase.subscription.subscription_query_model import SubTypeReadModel
+from app.usecase.subscription.subscription_command_usecase import (
+    SubscriptionCommandUseCase,
+    SubscriptionCommandUseCaseImpl,
+    SubscriptionCommandUseCaseUnitOfWork,
+)
+from app.usecase.subscription.subscription_query_model import (
+    SubscriptionReadModel,
+    SubTypeReadModel,
+)
 from app.usecase.subscription.subscription_query_service import SubscriptionQueryService
 from app.usecase.subscription.subscription_query_usecase import (
     SubscriptionQueryUseCase,
@@ -83,6 +106,20 @@ def subscription_query_usecase(
         session
     )
     return SubscriptionQueryUseCaseImpl(subscription_query_usecase)
+
+
+def subscription_command_usecase(
+    session: Session = Depends(get_session),
+) -> SubscriptionCommandUseCase:
+    subscription_repository: SubscriptionRepository = SubscriptionRepositoryImpl(
+        session
+    )
+    uow: SubscriptionCommandUseCaseUnitOfWork = (
+        SubscriptionCommandUseCaseUnitOfWorkImpl(
+            session, subscription_repository=subscription_repository
+        )
+    )
+    return SubscriptionCommandUseCaseImpl(uow)
 
 
 def enrollment_query_usecase(
@@ -123,6 +160,89 @@ async def get_subscription_types(
 
 
 @app.post(
+    "/subscriptions",
+    response_model=SubscriptionReadModel,
+    status_code=status.HTTP_201_CREATED,
+    responses={
+        status.HTTP_409_CONFLICT: {
+            "model": ErrorMessageUserAlreadySubscribed,
+        },
+        status.HTTP_404_NOT_FOUND: {
+            "model": ErrorMessageSubTypeNotFound,
+        },
+    },
+    tags=["subscriptions"],
+)
+async def subscribe(
+    user_id: str,
+    sub_id: int,
+    sub_query: SubscriptionQueryUseCase = Depends(subscription_query_usecase),
+    sub_command: SubscriptionCommandUseCase = Depends(subscription_command_usecase),
+):
+    try:
+        sub_query.sub_id_exists(sub_id)
+        sub = sub_command.subscribe(user_id=user_id, sub_id=sub_id)
+    except UserAlreadySubscribedError as e:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=e.message,
+        )
+    except UserNotSubscribedError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=e.message,
+        )
+    except SubTypeNotFoundError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=e.message,
+        )
+    except Exception as e:
+        logger.error(e)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
+
+    return sub
+
+
+@app.patch(
+    "/subscriptions/{user_id}",
+    response_model=SubscriptionReadModel,
+    status_code=status.HTTP_200_OK,
+    responses={
+        status.HTTP_409_CONFLICT: {
+            "model": ErrorMessageUserNotSubscribed,
+        },
+    },
+    tags=["subscriptions"],
+)
+async def unsubscribe(
+    user_id: str,
+    sub_command: SubscriptionCommandUseCase = Depends(subscription_command_usecase),
+):
+    try:
+        sub = sub_command.unsubscribe(user_id=user_id)
+    except UserNotSubscribedError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=e.message,
+        )
+    except SubTypeNotFoundError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=e.message,
+        )
+    except Exception as e:
+        logger.error(e)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
+
+    return sub
+
+
+@app.post(
     "/subscriptions/{course_id}/enrollments",
     response_model=EnrollmentReadModel,
     status_code=status.HTTP_201_CREATED,
@@ -133,7 +253,7 @@ async def get_subscription_types(
     },
     tags=["enrollments"],
 )
-async def enroll_user(
+async def enroll(
     course_id: str,
     user_id: str,
     enr_command: EnrollmentCommandUseCase = Depends(enrollment_command_usecase),
@@ -165,7 +285,7 @@ async def enroll_user(
     },
     tags=["enrollments"],
 )
-async def unenroll_user(
+async def unenroll(
     course_id: str,
     user_id: str,
     enr_command: EnrollmentCommandUseCase = Depends(enrollment_command_usecase),
