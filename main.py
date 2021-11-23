@@ -176,9 +176,11 @@ async def get_subscription_types(
 async def subscribe(
     user_id: str,
     sub_id: int,
+    sub_query: SubscriptionQueryUseCase = Depends(subscription_query_usecase),
     sub_command: SubscriptionCommandUseCase = Depends(subscription_command_usecase),
 ):
     try:
+        sub_query.sub_id_exists(sub_id)
         sub = sub_command.subscribe(user_id=user_id, sub_id=sub_id)
     except UserAlreadySubscribedError as e:
         raise HTTPException(
