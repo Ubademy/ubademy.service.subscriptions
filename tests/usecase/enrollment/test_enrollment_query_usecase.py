@@ -22,7 +22,7 @@ class TestEnrollmentQueryUseCase:
         with pytest.raises(NoStudentsInCourseError):
             enr_query.fetch_users_from_course(id="course_1", only_active=True)
 
-    def test_fetch_courses_from_user_should_return_only_active_students(self):
+    def test_fetch_courses_from_user_should_raise_no_students_in_course_error(self):
         session = MagicMock()
         session.query().filter_by().all = Mock(side_effect=no_enrollments)
         enr_query_service = EnrollmentQueryServiceImpl(session)
