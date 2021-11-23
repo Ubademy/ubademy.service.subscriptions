@@ -14,4 +14,4 @@ class TestSubscriptionQueryUseCase:
         sub_query_service = SubscriptionQueryServiceImpl(session)
         sub_query = SubscriptionQueryUseCaseImpl(sub_query_service)
         sub_types = sub_query.get_subscriptions()
-        assert len(sub_types) == 0
+        assert len(sub_types) == 3
