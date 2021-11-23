@@ -3,7 +3,7 @@ import json
 import logging
 import os
 from logging import config
-from typing import Iterator
+from typing import Iterator, List
 
 import requests
 from fastapi import Depends, FastAPI, HTTPException, status
@@ -28,6 +28,9 @@ from app.infrastructure.enrollment.enrollment_repository import (
     EnrollmentCommandUseCaseUnitOfWorkImpl,
     EnrollmentRepositoryImpl,
 )
+from app.infrastructure.subscription.subscription_query_service import (
+    SubscriptionQueryServiceImpl,
+)
 from app.presentation.schema.course.course_error_message import (
     ErrorMessageCourseNotFound,
 )
@@ -50,6 +53,12 @@ from app.usecase.enrollment.enrollment_query_usecase import (
     EnrollmentQueryUseCase,
     EnrollmentQueryUseCaseImpl,
 )
+from app.usecase.subscription.subscription_query_model import SubTypeReadModel
+from app.usecase.subscription.subscription_query_service import SubscriptionQueryService
+from app.usecase.subscription.subscription_query_usecase import (
+    SubscriptionQueryUseCase,
+    SubscriptionQueryUseCaseImpl,
+)
 from app.usecase.user.user_query_model import PaginatedUserReadModel
 
 config.fileConfig("logging.conf", disable_existing_loggers=False)
@@ -65,6 +74,15 @@ def get_session() -> Iterator[Session]:
         yield session
     finally:
         session.close()
+
+
+def subscription_query_usecase(
+    session: Session = Depends(get_session),
+) -> SubscriptionQueryUseCase:
+    subscription_query_usecase: SubscriptionQueryService = SubscriptionQueryServiceImpl(
+        session
+    )
+    return SubscriptionQueryUseCaseImpl(subscription_query_usecase)
 
 
 def enrollment_query_usecase(
@@ -90,6 +108,18 @@ try:
     microservices = ast.literal_eval(os.environ["MICROSERVICES"])
 except KeyError as e:
     microservices = {}
+
+
+@app.get(
+    "/subscriptions",
+    response_model=List[SubTypeReadModel],
+    status_code=status.HTTP_200_OK,
+    tags=["subscriptions"],
+)
+async def get_subscription_types(
+    sub_query: SubscriptionQueryUseCase = Depends(subscription_query_usecase),
+):
+    return sub_query.get_subscriptions()
 
 
 @app.post(
