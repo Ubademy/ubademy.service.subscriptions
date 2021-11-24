@@ -15,11 +15,7 @@ class UserReadModel(BaseModel):
     country: str = Field(example="Argentina")
     language: str = Field(example="Spanish")
     mail: str = Field(example="jane@doe.com")
+    favouriteCourses: List[str] = Field(example=["BeplhONPJ4xeLu", "gj1yXyrZ4"])
 
     class Config:
         orm_mode = True
-
-
-class PaginatedUserReadModel(BaseModel):
-    users: List[UserReadModel] = Field(example=UserReadModel.schema())
-    count: int = Field(ge=0, example=1)
