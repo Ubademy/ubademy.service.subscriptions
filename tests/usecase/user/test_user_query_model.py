@@ -14,5 +14,6 @@ class TestUserQueryModel:
             country="Arg",
             language="Es",
             mail="hola@gmail.com",
+            favouriteCourses=[],
         )
         assert user.id == "user_1"

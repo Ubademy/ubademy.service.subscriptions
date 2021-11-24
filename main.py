@@ -82,7 +82,7 @@ from app.usecase.subscription.subscription_query_usecase import (
     SubscriptionQueryUseCase,
     SubscriptionQueryUseCaseImpl,
 )
-from app.usecase.user.user_query_model import PaginatedUserReadModel
+from app.usecase.user.user_query_model import UserReadModel
 
 config.fileConfig("logging.conf", disable_existing_loggers=False)
 logger = logging.getLogger(__name__)
@@ -306,7 +306,7 @@ async def unenroll(
     return enrollment
 
 
-def get_users(uids, request, limit, offset):
+def get_users(uids, request):
     try:
         h = {"authorization": request.headers.get("authorization")}
         ids = ""
@@ -316,7 +316,7 @@ def get_users(uids, request, limit, offset):
         return requests.get(
             microservices.get("users") + "users/filter-by-ids",
             headers=h,
-            params={"ids": ids[:-1], "limit": limit, "offset": offset},
+            params={"ids": ids[:-1]},
         )
     except:
         raise
@@ -337,7 +337,7 @@ def get_courses(cids, limit, offset):
 
 @app.get(
     "/subscriptions/{course_id}/enrollments/course",
-    response_model=PaginatedUserReadModel,
+    response_model=List[UserReadModel],
     status_code=status.HTTP_200_OK,
     responses={
         status.HTTP_404_NOT_FOUND: {
@@ -353,22 +353,18 @@ async def get_users_enrolled(
     request: Request,
     course_id: str,
     only_active: bool = True,
-    limit: int = 50,
-    offset: int = 0,
     enr_query: EnrollmentQueryUseCase = Depends(enrollment_query_usecase),
 ):
     try:
         users = enr_query.fetch_users_from_course(id=course_id, only_active=only_active)
-        server_response = get_users(
-            uids=users, request=request, limit=limit, offset=offset
-        )
+        server_response = get_users(uids=users, request=request)
         logger.info(server_response)
         logger.info(server_response.status_code)
         if server_response.status_code == status.HTTP_403_FORBIDDEN:
             raise InvalidCredentialsError
     except NoStudentsInCourseError as e:
         logger.info(e)
-        return PaginatedUserReadModel(users=[], count=0)
+        return []
     except InvalidCredentialsError as e:
         logger.info(e)
         raise HTTPException(
