@@ -3,7 +3,9 @@ from abc import ABC, abstractmethod
 from typing import cast
 
 import shortuuid
+from sqlalchemy.exc import NoResultFound
 
+from app.domain.enrollment.enrollment_exception import NoEnrollmentPermissionError
 from app.domain.subscription.subscription import Subscription
 from app.domain.subscription.subscription_exception import (
     UserAlreadySubscribedError,
@@ -39,6 +41,10 @@ class SubscriptionCommandUseCase(ABC):
 
     @abstractmethod
     def unsubscribe(self, user_id: str):
+        raise NotImplementedError
+
+    @abstractmethod
+    def check_enr_permission(self, sub_id: int, user_id: str):
         raise NotImplementedError
 
 
@@ -85,3 +91,14 @@ class SubscriptionCommandUseCaseImpl(SubscriptionCommandUseCase):
         except:
             raise
         return sub
+
+    def check_enr_permission(self, sub_id: int, user_id: str):
+        try:
+            s = self.uow.subscription_repository.find_by_user_id(user_id)
+            if sub_id >= 1 and s.sub_id < 1:
+                raise NoEnrollmentPermissionError
+
+        except NoResultFound:
+            raise UserNotSubscribedError
+        except:
+            raise
