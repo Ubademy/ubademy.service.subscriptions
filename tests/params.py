@@ -5,6 +5,7 @@ from sqlalchemy.exc import NoResultFound
 from app.domain.enrollment.enrollment import Enrollment
 from app.infrastructure.enrollment.enrollment_dto import EnrollmentDTO
 from app.infrastructure.subscription.subscription_dto import SubscriptionDTO
+from app.usecase.course.course_query_model import CourseReadModel
 
 enr_1_active = Enrollment(
     id="enr_1",
@@ -67,6 +68,20 @@ sub_dto_1_inactive = SubscriptionDTO(
     updated_at=123,
 )
 
+course_sub_1 = CourseReadModel(
+    id="vytxeTZskVKR7C7WgdSP3d",
+    creator_id="creator1",
+    name="Programming",
+    price=10,
+    subscription_id=1,
+    language="English",
+    description="Learn how to program with C",
+    categories=["Programming"],
+    presentation_video="https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+    image="https://static01.nyt.com/images/2017/09/26/science/26TB-PANDA/26TB-PANDA-superJumbo.jpg",
+    created_at=1136214245000,
+    updated_at=1136214245000,
+)
 
 enrollment_dtos = [enr_dto_1_active, enr_dto_1_inactive]
 

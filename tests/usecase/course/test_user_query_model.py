@@ -8,6 +8,7 @@ class TestCourseQueryModel:
             creator_id="creator1",
             name="Programming",
             price=10,
+            subscription_id=0,
             language="English",
             description="Learn how to program with C",
             categories=["Programming"],
