@@ -36,7 +36,7 @@ class SubscriptionRepositoryImpl(SubscriptionRepository):
 
         return sub_dto.to_entity()
 
-    def has_active_user(self, user_id: str, sub_id: int = None):
+    def has_active_user(self, user_id: str, sub_id: int = None) -> bool:
         try:
             if sub_id is not None:
                 self.session.query(SubscriptionDTO).filter_by(
@@ -55,6 +55,18 @@ class SubscriptionRepositoryImpl(SubscriptionRepository):
             sub_dto = self.session.query(SubscriptionDTO).filter_by(id=uuid).one()
         except NoResultFound:
             return None
+        except:
+            raise
+
+        return sub_dto.to_entity()
+
+    def find_by_user_id(self, user_id: str) -> Subscription:
+        try:
+            sub_dto = (
+                self.session.query(SubscriptionDTO)
+                .filter_by(user_id=user_id, active=True)
+                .one()
+            )
         except:
             raise
 

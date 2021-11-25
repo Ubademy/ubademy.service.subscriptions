@@ -10,7 +10,9 @@ from fastapi import Depends, FastAPI, HTTPException, status
 from sqlalchemy.orm.session import Session
 from starlette.requests import Request
 
+from app.domain.course import CourseNotFoundError
 from app.domain.enrollment.enrollment_exception import (
+    NoEnrollmentPermissionError,
     UserAlreadyEnrolledError,
     UserNotEnrolledError,
 )
@@ -147,6 +149,16 @@ except KeyError as e:
     microservices = {}
 
 
+def get_courses(cids, limit, offset):
+    try:
+        return requests.get(
+            microservices.get("courses") + "courses/",
+            params={"ids": cids, "limit": limit, "offset": offset},
+        )
+    except:
+        raise
+
+
 @app.get(
     "/subscriptions",
     response_model=List[SubTypeReadModel],
@@ -257,12 +269,34 @@ async def enroll(
     course_id: str,
     user_id: str,
     enr_command: EnrollmentCommandUseCase = Depends(enrollment_command_usecase),
+    sub_command: SubscriptionCommandUseCase = Depends(subscription_command_usecase),
 ):
     try:
+        r = get_courses(course_id, 1, 0)
+        c = r.json().get("courses")
+        logger.info(c)
+        if len(c) == 0:
+            raise CourseNotFoundError
+        sub_command.check_enr_permission(c[0].get("subscription_id"), user_id)
         enrollment = enr_command.enroll(user_id=user_id, course_id=course_id)
     except UserAlreadyEnrolledError as e:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
+            detail=e.message,
+        )
+    except UserNotSubscribedError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=e.message,
+        )
+    except CourseNotFoundError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=e.message,
+        )
+    except NoEnrollmentPermissionError as e:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
             detail=e.message,
         )
     except Exception as e:
@@ -317,19 +351,6 @@ def get_users(uids, request):
             microservices.get("users") + "users/filter-by-ids",
             headers=h,
             params={"ids": ids[:-1]},
-        )
-    except:
-        raise
-
-
-def get_courses(cids, limit, offset):
-    try:
-        logger.info(microservices)
-        logger.info(type(microservices))
-        logger.info(microservices.get("courses"))
-        return requests.get(
-            microservices.get("courses") + "courses/",
-            params={"ids": cids, "limit": limit, "offset": offset},
         )
     except:
         raise

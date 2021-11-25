@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import List
 
-
 from app.domain.subscription.subscription_exception import SubTypeNotFoundError
 from app.usecase.subscription.subscription_query_model import SubTypeReadModel
 from app.usecase.subscription.subscription_query_service import SubscriptionQueryService

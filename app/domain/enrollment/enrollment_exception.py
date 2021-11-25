@@ -10,3 +10,10 @@ class UserNotEnrolledError(Exception):
 
     def __str__(self):
         return UserNotEnrolledError.message
+
+
+class NoEnrollmentPermissionError(Exception):
+    message = "User needs a better subscription in order to enroll in this course."
+
+    def __str__(self):
+        return NoEnrollmentPermissionError.message
