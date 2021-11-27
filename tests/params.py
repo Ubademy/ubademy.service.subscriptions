@@ -77,6 +77,7 @@ course_sub_1 = CourseReadModel(
     language="English",
     description="Learn how to program with C",
     categories=["Programming"],
+    recommendations={},
     presentation_video="https://www.youtube.com/watch?v=dQw4w9WgXcQ",
     image="https://static01.nyt.com/images/2017/09/26/science/26TB-PANDA/26TB-PANDA-superJumbo.jpg",
     created_at=1136214245000,

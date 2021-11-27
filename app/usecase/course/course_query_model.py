@@ -13,6 +13,7 @@ class CourseReadModel(BaseModel):
     language: str = Field(example="English")
     description: str = Field(example="Learn how to program with C")
     categories: List[str] = Field(example=["Programming"])
+    recommendations: dict = Field(example={"recommended": 100, "total": 120})
     presentation_video: str = Field(
         example="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
     )
