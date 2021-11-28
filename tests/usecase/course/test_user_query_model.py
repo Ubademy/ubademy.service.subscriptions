@@ -16,5 +16,6 @@ class TestCourseQueryModel:
             image="https://static01.nyt.com/images/2017/09/26/science/26TB-PANDA/26TB-PANDA-superJumbo.jpg",
             created_at=1136214245000,
             updated_at=1136214245000,
+            recommendations={},
         )
         assert course.id == "vytxeTZskVKR7C7WgdSP3d"
