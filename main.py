@@ -355,6 +355,43 @@ def get_users(uids, request):
     except:
         raise
 
+@app.get(
+    "/subscriptions/{course_id}/enrollments/course/id-only",
+    response_model=List[UserReadModel],
+    status_code=status.HTTP_200_OK,
+    responses={
+        status.HTTP_404_NOT_FOUND: {
+            "model": ErrorMessageCourseNotFound,
+        },
+        status.HTTP_403_FORBIDDEN: {
+            "model": ErrorMessageInvalidCredentials,
+        },
+    },
+    tags=["enrollments"],
+)
+async def get_users_enrolled_id_only(
+    request: Request,
+    course_id: str,
+    only_active: bool = True,
+    enr_query: EnrollmentQueryUseCase = Depends(enrollment_query_usecase),
+):
+    try:
+        users = enr_query.fetch_users_from_course(id=course_id, only_active=only_active)
+    except NoStudentsInCourseError as e:
+        logger.info(e)
+        return []
+    except InvalidCredentialsError as e:
+        logger.info(e)
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+        )
+    except Exception as e:
+        logger.error(e)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
+
+    return users
 
 @app.get(
     "/subscriptions/{course_id}/enrollments/course",
@@ -398,7 +435,6 @@ async def get_users_enrolled(
         )
 
     return json.loads(server_response.text)
-
 
 @app.get(
     "/subscriptions/{user_id}/enrollments/user",
