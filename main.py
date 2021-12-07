@@ -357,7 +357,7 @@ def get_users(uids, request):
 
 @app.get(
     "/subscriptions/{course_id}/enrollments/course/id-only",
-    response_model=List[UserReadModel],
+    response_model=List[str],
     status_code=status.HTTP_200_OK,
     responses={
         status.HTTP_404_NOT_FOUND: {
