@@ -218,6 +218,45 @@ async def subscribe(
     return sub
 
 
+@app.get(
+    "/subscriptions/{user_id}",
+    response_model=SubTypeReadModel,
+    status_code=status.HTTP_200_OK,
+    responses={
+        status.HTTP_409_CONFLICT: {
+            "model": ErrorMessageUserNotSubscribed,
+        },
+    },
+    tags=["subscriptions"],
+)
+async def get_subscription(
+    user_id: str,
+    sub_query: SubscriptionQueryUseCase = Depends(subscription_query_usecase),
+    sub_command: SubscriptionCommandUseCase = Depends(subscription_command_usecase),
+):
+    try:
+        sub_id = sub_command.user_sub_type(user_id=user_id)
+        for i in sub_query.get_subscriptions():
+            if i.id == sub_id:
+                return i
+        raise SubTypeNotFoundError
+    except UserNotSubscribedError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=e.message,
+        )
+    except SubTypeNotFoundError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=e.message,
+        )
+    except Exception as e:
+        logger.error(e)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
+
+
 @app.patch(
     "/subscriptions/{user_id}",
     response_model=SubscriptionReadModel,
@@ -428,6 +467,7 @@ async def get_users_enrolled(
         )
 
     return json.loads(server_response.text)
+
 
 @app.get(
     "/subscriptions/{user_id}/enrollments/user",
