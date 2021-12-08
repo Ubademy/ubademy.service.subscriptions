@@ -47,6 +47,10 @@ class SubscriptionCommandUseCase(ABC):
     def check_enr_permission(self, sub_id: int, user_id: str):
         raise NotImplementedError
 
+    @abstractmethod
+    def user_sub_type(self, user_id: str):
+        raise NotImplementedError
+
 
 class SubscriptionCommandUseCaseImpl(SubscriptionCommandUseCase):
     def __init__(
@@ -88,8 +92,7 @@ class SubscriptionCommandUseCaseImpl(SubscriptionCommandUseCase):
             sub = self.subscribe(user_id, 0)
         except UserAlreadySubscribedError:
             raise UserNotSubscribedError
-        except:
-            raise
+
         return sub
 
     def check_enr_permission(self, sub_id: int, user_id: str):
@@ -100,5 +103,11 @@ class SubscriptionCommandUseCaseImpl(SubscriptionCommandUseCase):
 
         except NoResultFound:
             raise UserNotSubscribedError
-        except:
-            raise
+
+    def user_sub_type(self, user_id: str):
+        try:
+            s = self.uow.subscription_repository.find_by_user_id(user_id)
+        except NoResultFound:
+            raise UserNotSubscribedError
+
+        return s.sub_id
