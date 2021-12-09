@@ -47,6 +47,18 @@ class EnrollmentRepositoryImpl(EnrollmentRepository):
 
         return enr_dto.to_entity()
 
+    def unenroll_all(self, course_id: str):
+        try:
+            enr_dtos = (
+                self.session.query(EnrollmentDTO)
+                .filter_by(course_id=course_id, active=True)
+                .all()
+            )
+            for i in enr_dtos:
+                i.active = False
+        except:
+            raise
+
     def find_by_id(self, uuid: str) -> Optional[Enrollment]:
         try:
             enr_dto = self.session.query(EnrollmentDTO).filter_by(id=uuid).one()

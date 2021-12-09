@@ -20,3 +20,7 @@ class EnrollmentRepository(ABC):
     @abstractmethod
     def unenroll(self, user_id: str, course_id: str) -> Optional[Enrollment]:
         raise NotImplementedError
+
+    @abstractmethod
+    def unenroll_all(self, course_id: str):
+        raise NotImplementedError
