@@ -38,6 +38,10 @@ class EnrollmentCommandUseCase(ABC):
     def unenroll(self, user_id: str, course_id: str) -> Optional[EnrollmentReadModel]:
         raise NotImplementedError
 
+    @abstractmethod
+    def unenroll_all(self, course_id: str):
+        raise NotImplementedError
+
 
 class EnrollmentCommandUseCaseImpl(EnrollmentCommandUseCase):
     def __init__(
@@ -86,3 +90,11 @@ class EnrollmentCommandUseCaseImpl(EnrollmentCommandUseCase):
             raise
 
         return EnrollmentReadModel.from_entity(cast(Enrollment, enrollment))
+
+    def unenroll_all(self, course_id: str):
+        try:
+            self.uow.enrollment_repository.unenroll_all(course_id=course_id)
+            self.uow.commit()
+        except:
+            self.uow.rollback()
+            raise

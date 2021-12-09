@@ -379,6 +379,50 @@ async def unenroll(
     return enrollment
 
 
+def notify_users(users: List[str], course_name: str):
+    body = {
+        "usersToNotify": users,
+        "courseName": course_name,
+        "courseNewState": "Cancelled",
+    }
+    requests.post(
+        microservices.get("notifications") + "notifications/course-state-change",
+        json=body,
+    )
+
+
+@app.patch(
+    "/subscriptions/{course_id}/enrollments",
+    status_code=status.HTTP_204_NO_CONTENT,
+    responses={
+        status.HTTP_409_CONFLICT: {
+            "model": ErrorMessageUserNotEnrolled,
+        },
+    },
+    tags=["enrollments"],
+)
+async def unenroll_all(
+    course_id: str,
+    course_name: str,
+    enr_command: EnrollmentCommandUseCase = Depends(enrollment_command_usecase),
+    enr_query: EnrollmentQueryUseCase = Depends(enrollment_query_usecase),
+):
+    try:
+        users = enr_query.fetch_users_from_course(id=course_id, only_active=True)
+        enr_command.unenroll_all(course_id=course_id)
+        notify_users(users, course_name)
+    except NoStudentsInCourseError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=e.message,
+        )
+    except Exception as e:
+        logger.error(e)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
+
+
 def get_users(uids, request):
     try:
         h = {"authorization": request.headers.get("authorization")}
