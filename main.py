@@ -376,7 +376,7 @@ async def enroll(
             if i.id == sub_id:
                 sub = i
         price = apply_discount(c[0].get("price"), sub, c[0].get("subscription_id"))
-        if price >= 0:
+        if price > 0:
             p = pay(user_id, price)
             if p.status_code != 200:
                 raise PaymentError
