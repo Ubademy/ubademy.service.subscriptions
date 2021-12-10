@@ -13,6 +13,8 @@ class SubTypeReadModel(BaseModel):
         "discounts on all courses when you join Ubademy Pass."
     )
     price: float = Field(ge=0, example=20)
+    discount_default: int = Field(ge=0, le=100, example=15)
+    discount_plus: int = Field(ge=0, le=100, example=5)
     badge: str = Field(
         example="https://taller-de-programacion-2.github.io/works/statement/2021/2/tp/ubademy.png"
     )
