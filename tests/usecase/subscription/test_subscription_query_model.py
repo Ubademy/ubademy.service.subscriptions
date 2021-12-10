@@ -8,6 +8,8 @@ class TestSubscriptionQueryModel:
             name="Ubademy+",
             description="Yes",
             price=12,
+            discount_default=0,
+            discount_plus=0,
             badge="https://taller-de-programacion-2.github.io/works/statement/2021/2/tp/ubademy.png",
         )
         assert sub_type.id == 1
