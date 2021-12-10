@@ -177,6 +177,26 @@ async def get_subscription_types(
     return sub_query.get_subscriptions()
 
 
+class PaymentError(Exception):
+    message = "Payment error."
+
+    def __str__(self):
+        return PaymentError.message
+
+
+def pay(user_id, price_usd):
+    price_in_eth = f"{price_usd / eth_conv:.12f}"[0:12]
+    body = {
+        "senderId": user_id,
+        "amountInEthers": price_in_eth,
+    }
+    logger.info(body)
+    return requests.post(
+        microservices.get("payments") + "payments/deposit",
+        json=body,
+    )
+
+
 @app.post(
     "/subscriptions",
     response_model=SubscriptionReadModel,
@@ -200,6 +220,15 @@ async def subscribe(
     try:
         sub_query.sub_id_exists(sub_id)
         sub = sub_command.subscribe(user_id=user_id, sub_id=sub_id)
+        price: float = 0
+        for i in sub_query.get_subscriptions():
+            if i.id == sub_id:
+                price = i.price
+        if price > 0:
+            p = pay(user_id, price)
+            if p.status_code != 200:
+                raise PaymentError
+
     except UserAlreadySubscribedError as e:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
@@ -214,6 +243,14 @@ async def subscribe(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=e.message,
+        )
+    except PaymentError as e:
+        logger.error(e)
+        logger.error(p.json())
+        sub_command.unsubscribe(user_id=user_id)
+        raise HTTPException(
+            status_code=p.status_code,
+            detail=p.json(),
         )
     except Exception as e:
         logger.error(e)
@@ -299,36 +336,13 @@ async def unsubscribe(
     return sub
 
 
-class PaymentError(Exception):
-    message = "Payment error."
-
-    def __str__(self):
-        return PaymentError.message
-
-
 def apply_discount(price, user_sub_type, course_sub_type):
     if course_sub_type == 0:
-        price = price*(1-user_sub_type.discount_default/100)
+        price = price * (1 - user_sub_type.discount_default / 100)
     if course_sub_type == 1:
-        price = price*(1-user_sub_type.discount_plus/100)
+        price = price * (1 - user_sub_type.discount_plus / 100)
 
     return price
-
-
-def pay(user_id, price_usd):
-    if price_usd <= 0:
-        return {}
-
-    price_in_eth = f"{price_usd / eth_conv:.12f}"[0:12]
-    body = {
-        "senderId": user_id,
-        "amountInEthers": price_in_eth,
-    }
-    logger.info(body)
-    return requests.post(
-        microservices.get("payments") + "payments/deposit",
-        json=body,
-    )
 
 
 @app.post(
@@ -362,9 +376,10 @@ async def enroll(
             if i.id == sub_id:
                 sub = i
         price = apply_discount(c[0].get("price"), sub, c[0].get("subscription_id"))
-        p = pay(user_id, price)
-        if p.status_code != 200:
-            raise PaymentError
+        if price >= 0:
+            p = pay(user_id, price)
+            if p.status_code != 200:
+                raise PaymentError
 
     except UserAlreadyEnrolledError as e:
         raise HTTPException(
@@ -394,7 +409,6 @@ async def enroll(
             status_code=p.status_code,
             detail=p.json(),
         )
-
     except Exception as e:
         logger.error(e)
         raise HTTPException(
