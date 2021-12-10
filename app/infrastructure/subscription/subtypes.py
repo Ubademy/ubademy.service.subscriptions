@@ -26,7 +26,7 @@ subtype_pass = SubTypeReadModel(
     description="Immerse yourself in a library of hundreds of high-quality courses. Enjoy the discounts on all "
     "courses when you join Ubademy Pass.",
     price=34.99,
-    discount_default=20,
-    discount_plus=50,
+    discount_default=50,
+    discount_plus=20,
     badge="https://taller-de-programacion-2.github.io/works/statement/2021/2/tp/ubademy.png",
 )
