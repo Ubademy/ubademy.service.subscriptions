@@ -148,12 +148,6 @@ try:
 except KeyError as e:
     microservices = {}
 
-try:
-    eth_conv = float(os.environ["ETH_CONV"])
-except KeyError as e:
-    logger.info("Environment variable ETH_CONV not found, using default value: 4001.42")
-    eth_conv = 4001.42
-
 
 def get_courses(cids, limit, offset):
     try:
@@ -184,10 +178,11 @@ class PaymentError(Exception):
         return PaymentError.message
 
 
-def pay(user_id, price_usd):
-    price_in_eth = f"{price_usd / eth_conv:.12f}"[0:12]
+async def pay(user_id, price, creator_id=None):
+    price_in_eth = f"{price:.12f}"[0:12]
     body = {
         "senderId": user_id,
+        "receiverId": creator_id,
         "amountInEthers": price_in_eth,
     }
     logger.info(body)
@@ -225,7 +220,7 @@ async def subscribe(
             if i.id == sub_id:
                 price = i.price
         if price > 0:
-            p = pay(user_id, price)
+            p = await pay(user_id, price)
             if p.status_code != 200:
                 raise PaymentError
 
@@ -377,7 +372,7 @@ async def enroll(
                 sub = i
         price = apply_discount(c[0].get("price"), sub, c[0].get("subscription_id"))
         if price > 0:
-            p = pay(user_id, price)
+            p = await pay(user_id, price, creator_id=c[0].get("creator_id"))
             if p.status_code != 200:
                 raise PaymentError
 
