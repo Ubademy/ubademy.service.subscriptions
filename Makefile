@@ -26,11 +26,11 @@ fmt:
 lint:
 	$(PYLINT) main.py ./${PACKAGE}
 
-build:
+reset:
 	$ docker rm dbsubs
-	$ docker-compose build
+	$ docker-compose up --build
 
 run:
-	$ docker-compose up
+	$ docker-compose up --build
 
 all: fmt lint test build run
