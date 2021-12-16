@@ -180,11 +180,13 @@ class PaymentError(Exception):
 
 async def pay(user_id, price, creator_id=None):
     price_in_eth = f"{price:.12f}"[0:12]
+
     body = {
         "senderId": user_id,
-        "receiverId": creator_id,
         "amountInEthers": price_in_eth,
     }
+    if creator_id is not None:
+        body["receiverId"] = creator_id
     logger.info(body)
     return requests.post(
         microservices.get("payments") + "payments/deposit",
