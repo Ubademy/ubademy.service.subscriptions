@@ -1,3 +1,4 @@
+import json
 from typing import List
 
 from pydantic import BaseModel, Field
@@ -10,6 +11,7 @@ class CourseReadModel(BaseModel):
     name: str = Field(example="C Programming For Beginners - Master the C Language")
     price: int = Field(ge=0, example=10)
     subscription_id: int = Field(ge=0, le=2, example=1)
+    active: bool = Field(example=True)
     language: str = Field(example="English")
     description: str = Field(example="Learn how to program with C")
     categories: List[str] = Field(example=["Programming"])
@@ -30,3 +32,29 @@ class CourseReadModel(BaseModel):
 class PaginatedCourseReadModel(BaseModel):
     courses: List[CourseReadModel] = Field(example=CourseReadModel.schema())
     count: int = Field(ge=0, example=1)
+
+    @staticmethod
+    def empty():
+        return PaginatedCourseReadModel(courses=[], count=0)
+
+
+class CoursesListReadModel(BaseModel):
+    enrolled: PaginatedCourseReadModel = Field(
+        example=PaginatedCourseReadModel.schema()
+    )
+    unenrolled: PaginatedCourseReadModel = Field(
+        example=PaginatedCourseReadModel.schema()
+    )
+
+    @staticmethod
+    def empty():
+        return CoursesListReadModel(
+            enrolled=PaginatedCourseReadModel.empty(),
+            unenrolled=PaginatedCourseReadModel.empty(),
+        )
+
+    @staticmethod
+    def from_responses(enrolled, unenrolled):
+        return CoursesListReadModel(
+            enrolled=json.loads(enrolled.text), unenrolled=json.loads(unenrolled.text)
+        )

@@ -73,6 +73,7 @@ course_sub_1 = CourseReadModel(
     creator_id="creator1",
     name="Programming",
     price=10,
+    active=True,
     subscription_id=1,
     language="English",
     description="Learn how to program with C",

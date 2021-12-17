@@ -58,7 +58,7 @@ from app.presentation.schema.subscription.subscription_error_message import (
 from app.presentation.schema.user.enrollment_error_message import (
     ErrorMessageInvalidCredentials,
 )
-from app.usecase.course.course_query_model import PaginatedCourseReadModel
+from app.usecase.course.course_query_model import CoursesListReadModel
 from app.usecase.enrollment.enrollment_command_usecase import (
     EnrollmentCommandUseCase,
     EnrollmentCommandUseCaseImpl,
@@ -150,6 +150,8 @@ except KeyError as e:
 
 
 def get_courses(cids, limit, offset):
+    if len(cids) == 0:
+        cids.append("-")
     try:
         return requests.get(
             microservices.get("courses") + "courses/",
@@ -583,7 +585,7 @@ async def get_users_enrolled(
 
 @app.get(
     "/subscriptions/{user_id}/enrollments/user",
-    response_model=PaginatedCourseReadModel,
+    response_model=CoursesListReadModel,
     status_code=status.HTTP_200_OK,
     responses={
         status.HTTP_404_NOT_FOUND: {
@@ -594,22 +596,24 @@ async def get_users_enrolled(
 )
 async def get_courses_enrolled(
     user_id: str,
-    only_active: bool = True,
     limit: int = 50,
     offset: int = 0,
     enr_query: EnrollmentQueryUseCase = Depends(enrollment_query_usecase),
 ):
     try:
-        courses = enr_query.fetch_courses_from_user(id=user_id, only_active=only_active)
-        server_response = get_courses(cids=courses, limit=limit, offset=offset)
+        enr_list = enr_query.fetch_courses_from_user(id=user_id)
+        enrolled = get_courses(cids=enr_list["enrolled"], limit=limit, offset=offset)
+        unenrolled = get_courses(
+            cids=enr_list["unenrolled"], limit=limit, offset=offset
+        )
 
     except StudentNotEnrolledError as e:
         logger.info(e)
-        return PaginatedCourseReadModel(courses=[], count=0)
+        return CoursesListReadModel.empty()
     except Exception as e:
         logger.error(e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
-    return json.loads(server_response.text)
+    return CoursesListReadModel.from_responses(enrolled, unenrolled)

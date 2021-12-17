@@ -9,6 +9,7 @@ class TestCourseQueryModel:
             name="Programming",
             price=10,
             subscription_id=0,
+            active=True,
             language="English",
             description="Learn how to program with C",
             categories=["Programming"],
