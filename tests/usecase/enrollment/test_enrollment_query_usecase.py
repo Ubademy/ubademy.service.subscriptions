@@ -28,4 +28,4 @@ class TestEnrollmentQueryUseCase:
         enr_query_service = EnrollmentQueryServiceImpl(session)
         enr_query = EnrollmentQueryUseCaseImpl(enr_query_service)
         with pytest.raises(StudentNotEnrolledError):
-            enr_query.fetch_courses_from_user(id="user_1", only_active=True)
+            enr_query.fetch_courses_from_user(id="user_1")

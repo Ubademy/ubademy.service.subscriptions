@@ -14,7 +14,7 @@ class EnrollmentQueryUseCase(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def fetch_courses_from_user(self, id: str, only_active: bool) -> List[str]:
+    def fetch_courses_from_user(self, id: str) -> dict:
         raise NotImplementedError
 
 
@@ -38,16 +38,21 @@ class EnrollmentQueryUseCaseImpl(EnrollmentQueryUseCase):
 
         return r
 
-    def fetch_courses_from_user(self, id: str, only_active: bool) -> List[str]:
+    def fetch_courses_from_user(self, id: str) -> dict:
         try:
             enrollments = self.enrollment_query_service.fetch_enrollments_from_user(id)
-            if only_active:
-                enrollments = list(filter(lambda enr: enr.is_active(), enrollments))
+            enrolled = list(filter(lambda enr: enr.is_active(), enrollments))
+            unenrolled = list(filter(lambda enr: not enr.is_active(), enrollments))
+
+            enr_list = {
+                "enrolled": list(map(lambda enr: enr.get_course_id(), enrolled)),
+                "unenrolled": list(map(lambda enr: enr.get_course_id(), unenrolled)),
+            }
+
             if len(enrollments) == 0:
                 raise StudentNotEnrolledError
-            r = list(map(lambda enr: enr.get_course_id(), enrollments))
 
         except:
             raise
 
-        return r
+        return enr_list
