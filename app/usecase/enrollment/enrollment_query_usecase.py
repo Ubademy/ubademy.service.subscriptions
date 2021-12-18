@@ -48,6 +48,9 @@ class EnrollmentQueryUseCaseImpl(EnrollmentQueryUseCase):
                 "enrolled": list(map(lambda enr: enr.get_course_id(), enrolled)),
                 "unenrolled": list(map(lambda enr: enr.get_course_id(), unenrolled)),
             }
+            enr_list["unenrolled"] = list(
+                filter(lambda e: e not in enr_list["enrolled"], enr_list["unenrolled"])
+            )
 
             if len(enrollments) == 0:
                 raise StudentNotEnrolledError
