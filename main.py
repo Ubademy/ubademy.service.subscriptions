@@ -70,6 +70,9 @@ from app.usecase.enrollment.enrollment_query_usecase import (
     EnrollmentQueryUseCase,
     EnrollmentQueryUseCaseImpl,
 )
+from app.usecase.metrics.enrollment_metrics_query_model import (
+    LimitedEnrollmentMetricsReadModel,
+)
 from app.usecase.subscription.subscription_command_usecase import (
     SubscriptionCommandUseCase,
     SubscriptionCommandUseCaseImpl,
@@ -617,3 +620,25 @@ async def get_courses_enrolled(
         )
 
     return CoursesListReadModel.from_responses(enrolled, unenrolled)
+
+
+@app.get(
+    "/subscriptions/metrics/",
+    response_model=LimitedEnrollmentMetricsReadModel,
+    status_code=status.HTTP_200_OK,
+    tags=["metrics"],
+)
+async def get_enrollment_metrics(
+    limit: int = 10,
+    query_usecase: EnrollmentQueryUseCase = Depends(enrollment_query_usecase),
+):
+    try:
+        metrics, count = query_usecase.get_enrollment_metrics(limit=limit)
+
+    except Exception as e:
+        logger.error(e)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
+
+    return LimitedEnrollmentMetricsReadModel(courses=metrics, count=count)
