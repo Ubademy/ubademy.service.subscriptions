@@ -1,10 +1,11 @@
 from abc import ABC, abstractmethod
-from typing import List
+from typing import List, Tuple
 
 from ...domain.user.user_exception import (
     NoStudentsInCourseError,
     StudentNotEnrolledError,
 )
+from ..metrics.enrollment_metrics_query_model import EnrollmentMetricsReadModel
 from .enrollment_query_service import EnrollmentQueryService
 
 
@@ -15,6 +16,12 @@ class EnrollmentQueryUseCase(ABC):
 
     @abstractmethod
     def fetch_courses_from_user(self, id: str) -> dict:
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_enrollment_metrics(
+        self, limit: int
+    ) -> Tuple[List[EnrollmentMetricsReadModel], int]:
         raise NotImplementedError
 
 
@@ -42,7 +49,11 @@ class EnrollmentQueryUseCaseImpl(EnrollmentQueryUseCase):
         try:
             enrollments = self.enrollment_query_service.fetch_enrollments_from_user(id)
             enrolled = list(filter(lambda enr: enr.is_active(), enrollments))
-            unenrolled = list(filter(lambda enr: not enr.is_active() and enr not in enrolled, enrollments))
+            unenrolled = list(
+                filter(
+                    lambda enr: not enr.is_active() and enr not in enrolled, enrollments
+                )
+            )
 
             enr_list = {
                 "enrolled": list(map(lambda enr: enr.get_course_id(), enrolled)),
@@ -59,3 +70,14 @@ class EnrollmentQueryUseCaseImpl(EnrollmentQueryUseCase):
             raise
 
         return enr_list
+
+    def get_enrollment_metrics(
+        self, limit: int
+    ) -> Tuple[List[EnrollmentMetricsReadModel], int]:
+        try:
+            courses, count = self.enrollment_query_service.get_enrollment_metrics(
+                limit=limit
+            )
+        except:
+            raise
+        return courses, count

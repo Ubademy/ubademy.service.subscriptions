@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
-from typing import List
+from typing import List, Tuple
 
+from ..metrics.enrollment_metrics_query_model import EnrollmentMetricsReadModel
 from .enrollment_query_model import EnrollmentReadModel
 
 
@@ -11,4 +12,10 @@ class EnrollmentQueryService(ABC):
 
     @abstractmethod
     def fetch_enrollments_from_user(self, id: str) -> List[EnrollmentReadModel]:
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_enrollment_metrics(
+        self, limit: int
+    ) -> Tuple[List[EnrollmentMetricsReadModel], int]:
         raise NotImplementedError

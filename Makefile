@@ -33,4 +33,6 @@ reset:
 run:
 	$ docker-compose up --build
 
-all: lint test reset
+checks: lint test
+
+all: checks reset
