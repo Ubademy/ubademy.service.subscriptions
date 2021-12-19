@@ -42,7 +42,7 @@ class EnrollmentQueryUseCaseImpl(EnrollmentQueryUseCase):
         try:
             enrollments = self.enrollment_query_service.fetch_enrollments_from_user(id)
             enrolled = list(filter(lambda enr: enr.is_active(), enrollments))
-            unenrolled = list(filter(lambda enr: not enr.is_active(), enrollments))
+            unenrolled = list(filter(lambda enr: not enr.is_active() and enr not in enrolled, enrollments))
 
             enr_list = {
                 "enrolled": list(map(lambda enr: enr.get_course_id(), enrolled)),
