@@ -497,6 +497,45 @@ async def unenroll_all(
         )
 
 
+@app.get(
+    "/subscriptions/{course_id}/enrollments/cancel-fee",
+    response_model=List[str],
+    status_code=status.HTTP_200_OK,
+    responses={
+        status.HTTP_404_NOT_FOUND: {
+            "model": ErrorMessageCourseNotFound,
+        },
+    },
+    tags=["enrollments"],
+)
+async def get_cancel_fee(
+    course_id: str,
+    creator_id: str,
+    price: int,
+    sub_id: int,
+    enr_query: EnrollmentQueryUseCase = Depends(enrollment_query_usecase),
+    sub_command: SubscriptionCommandUseCase = Depends(subscription_command_usecase),
+):
+    try:
+        users = enr_query.fetch_users_from_course(id=course_id, only_active=True)
+        total = 0
+        for i in users:
+            total += apply_discount(price, sub_command.user_sub_type(i), sub_id)
+
+        url: str = microservices.get("payments")  # type: ignore
+        wallet = requests.get(
+            url + "payments/wallet/" + creator_id
+        )
+
+    except Exception as e:
+        logger.error(e)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
+
+    return float(json.loads(wallet.text)["balance"]) > total
+
+
 def get_users(uids, request):
     try:
         h = {"authorization": request.headers.get("authorization")}
