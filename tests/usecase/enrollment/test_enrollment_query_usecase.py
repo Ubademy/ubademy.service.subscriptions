@@ -32,11 +32,13 @@ class TestEnrollmentQueryUseCase:
 
     def test_get_enrollment_metrics(self):
         session = MagicMock()
-        session.query().group_by().all = Mock(return_value=[("course_1", 1)])
+        session.query().filter().group_by().all = Mock(return_value=[("course_1", 1)])
         enr_query_service = EnrollmentQueryServiceImpl(session)
         enr_query = EnrollmentQueryUseCaseImpl(enr_query_service)
 
-        metrics, count = enr_query.get_enrollment_metrics(limit=1)
+        metrics, count = enr_query.get_enrollment_metrics(
+            limit=1, min_timestamp=0, max_timestamp=100
+        )
 
         assert len(metrics) == 1
         assert count == 1

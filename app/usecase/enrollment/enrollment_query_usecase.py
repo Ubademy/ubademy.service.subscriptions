@@ -20,7 +20,10 @@ class EnrollmentQueryUseCase(ABC):
 
     @abstractmethod
     def get_enrollment_metrics(
-        self, limit: int
+        self,
+        limit: int,
+        min_timestamp: int,
+        max_timestamp: int,
     ) -> Tuple[List[EnrollmentMetricsReadModel], int]:
         raise NotImplementedError
 
@@ -72,11 +75,16 @@ class EnrollmentQueryUseCaseImpl(EnrollmentQueryUseCase):
         return enr_list
 
     def get_enrollment_metrics(
-        self, limit: int
+        self,
+        limit: int,
+        min_timestamp: int,
+        max_timestamp: int,
     ) -> Tuple[List[EnrollmentMetricsReadModel], int]:
         try:
             courses, count = self.enrollment_query_service.get_enrollment_metrics(
-                limit=limit
+                limit=limit,
+                min_timestamp=min_timestamp,
+                max_timestamp=max_timestamp,
             )
         except:
             raise
