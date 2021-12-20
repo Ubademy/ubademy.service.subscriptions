@@ -499,7 +499,7 @@ async def unenroll_all(
 
 @app.get(
     "/subscriptions/{course_id}/enrollments/cancel-fee",
-    response_model=List[str],
+    response_model=float,
     status_code=status.HTTP_200_OK,
     responses={
         status.HTTP_404_NOT_FOUND: {
