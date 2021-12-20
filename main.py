@@ -514,12 +514,14 @@ async def get_cancel_fee(
     sub_id: int,
     enr_query: EnrollmentQueryUseCase = Depends(enrollment_query_usecase),
     sub_command: SubscriptionCommandUseCase = Depends(subscription_command_usecase),
+    sub_query: SubscriptionQueryUseCase = Depends(subscription_query_usecase),
 ):
     try:
         users = enr_query.fetch_users_from_course(id=course_id, only_active=True)
+        subs = sub_query.get_subscriptions()
         total = 0
         for i in users:
-            total += apply_discount(price, sub_command.user_sub_type(i), sub_id)
+            total += apply_discount(price, sub_command.user_sub_type(i), subs[sub_id])
     except Exception as e:
         logger.error(e)
         raise HTTPException(
