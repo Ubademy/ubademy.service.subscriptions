@@ -522,6 +522,9 @@ async def get_cancel_fee(
         total = 0
         for i in users:
             total += apply_discount(price, subs[sub_command.user_sub_type(i)], sub_id)
+    except NoStudentsInCourseError as e:
+        logger.error(e)
+        return 0
     except Exception as e:
         logger.error(e)
         raise HTTPException(
