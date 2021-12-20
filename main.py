@@ -510,8 +510,7 @@ async def unenroll_all(
 )
 async def get_cancel_fee(
     course_id: str,
-    creator_id: str,
-    price: int,
+    price: float,
     sub_id: int,
     enr_query: EnrollmentQueryUseCase = Depends(enrollment_query_usecase),
     sub_command: SubscriptionCommandUseCase = Depends(subscription_command_usecase),
@@ -522,18 +521,13 @@ async def get_cancel_fee(
         for i in users:
             total += apply_discount(price, sub_command.user_sub_type(i), sub_id)
 
-        url: str = microservices.get("payments")  # type: ignore
-        wallet = requests.get(
-            url + "payments/wallet/" + creator_id
-        )
-
     except Exception as e:
         logger.error(e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
-    return float(json.loads(wallet.text)["balance"]) > total
+    return total
 
 
 def get_users(uids, request):
