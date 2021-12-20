@@ -34,12 +34,21 @@ class EnrollmentQueryServiceImpl(EnrollmentQueryService):
         return list(map(lambda enr_dto: enr_dto.to_read_model(), enr_dtos))
 
     def get_enrollment_metrics(
-        self, limit: int
+        self,
+        limit: int,
+        min_timestamp: int,
+        max_timestamp: int,
     ) -> Tuple[List[EnrollmentMetricsReadModel], int]:
         try:
             enr_tuples = (
                 self.session.query(
-                    EnrollmentDTO.course_id, func.count(EnrollmentDTO.course_id)
+                    EnrollmentDTO.course_id,
+                    func.count(EnrollmentDTO.course_id),
+                )
+                .filter(
+                    EnrollmentDTO.active,
+                    EnrollmentDTO.updated_at >= min_timestamp,
+                    EnrollmentDTO.updated_at <= max_timestamp,
                 )
                 .group_by(EnrollmentDTO.course_id)
                 .all()

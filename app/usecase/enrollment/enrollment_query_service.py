@@ -16,6 +16,9 @@ class EnrollmentQueryService(ABC):
 
     @abstractmethod
     def get_enrollment_metrics(
-        self, limit: int
+        self,
+        limit: int,
+        min_timestamp: int,
+        max_timestamp: int,
     ) -> Tuple[List[EnrollmentMetricsReadModel], int]:
         raise NotImplementedError

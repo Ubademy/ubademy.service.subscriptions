@@ -2,6 +2,7 @@ import ast
 import json
 import logging
 import os
+from datetime import datetime
 from logging import config
 from typing import Iterator, List
 
@@ -630,10 +631,18 @@ async def get_courses_enrolled(
 )
 async def get_enrollment_metrics(
     limit: int = 10,
+    min_timestamp: int = 0,
+    max_timestamp: int = None,
     query_usecase: EnrollmentQueryUseCase = Depends(enrollment_query_usecase),
 ):
     try:
-        metrics, count = query_usecase.get_enrollment_metrics(limit=limit)
+        if max_timestamp is None:
+            max_timestamp = int(datetime.now().timestamp() * 1000)
+        metrics, count = query_usecase.get_enrollment_metrics(
+            limit=limit, min_timestamp=min_timestamp, max_timestamp=max_timestamp
+        )
+        cids = list(map(lambda m: m.course_id, metrics))
+        courses = get_courses(cids, limit, 0)
 
     except Exception as e:
         logger.error(e)
@@ -641,4 +650,6 @@ async def get_enrollment_metrics(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
-    return LimitedEnrollmentMetricsReadModel(courses=metrics, count=count)
+    return LimitedEnrollmentMetricsReadModel.from_lists(
+        json.loads(courses.text), metrics, count
+    )
