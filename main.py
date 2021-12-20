@@ -521,7 +521,7 @@ async def get_cancel_fee(
         subs = sub_query.get_subscriptions()
         total = 0
         for i in users:
-            total += apply_discount(price, sub_command.user_sub_type(i), subs[sub_id])
+            total += apply_discount(price, subs[sub_command.user_sub_type(i)], sub_id)
     except Exception as e:
         logger.error(e)
         raise HTTPException(
