@@ -478,11 +478,21 @@ def notify_users(users: List[str], course_name: str):
 async def unenroll_all(
     course_id: str,
     course_name: str,
+    price: float,
+    sub_id: int,
     enr_command: EnrollmentCommandUseCase = Depends(enrollment_command_usecase),
     enr_query: EnrollmentQueryUseCase = Depends(enrollment_query_usecase),
+    sub_query: SubscriptionQueryUseCase = Depends(subscription_query_usecase),
+    sub_command: SubscriptionCommandUseCase = Depends(subscription_command_usecase),
 ):
     try:
         users = enr_query.fetch_users_from_course(id=course_id, only_active=True)
+        subs = sub_query.get_subscriptions()
+        reimbursements = {}
+        for i in users:
+            reimbursements[i] = apply_discount(price, subs[sub_command.user_sub_type(i)], sub_id)
+        logger.info(reimbursements)
+
         enr_command.unenroll_all(course_id=course_id)
         notify_users(users, course_name)
     except NoStudentsInCourseError as e:
