@@ -490,7 +490,9 @@ async def unenroll_all(
         subs = sub_query.get_subscriptions()
         reimbursements = {}
         for i in users:
-            reimbursements[i] = apply_discount(price, subs[sub_command.user_sub_type(i)], sub_id)
+            reimbursements[i] = apply_discount(
+                price, subs[sub_command.user_sub_type(i)], sub_id
+            )
         logger.info(reimbursements)
 
         enr_command.unenroll_all(course_id=course_id)
@@ -621,9 +623,9 @@ async def get_users_enrolled(
         logger.info(e)
         return []
     except InvalidCredentialsError as e:
-        logger.info(e)
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
+            detail=e.message,
         )
     except Exception as e:
         logger.error(e)
