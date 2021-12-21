@@ -482,21 +482,21 @@ async def reimburse(reimbursements, creator_id, total):
         raise PaymentError
 
     url = microservices.get("payments")
-    payment = requests.post(url + "payments/pay", json={"payments": reimbursements})
+    payment = requests.post(url + "payments/pay", json=reimbursements)
     if payment.status_code != 200:
         raise PaymentError
 
 
 def get_reimbursements(users, price, sub_query, sub_command, sub_id):
     subs = sub_query.get_subscriptions()
-    reimbursements = {}
+    reimbursements = []
     total = 0
     for i in users:
         discounted_price = apply_discount(
             price, subs[sub_command.user_sub_type(i)], sub_id
         )
         total += discounted_price
-        reimbursements[i] = f"{discounted_price:.12f}"[0:12]
+        reimbursements.append({"receiverId": i, "amountInEthers": f"{discounted_price:.12f}"[0:12]})
     logger.info(reimbursements)
     return reimbursements, total
 
