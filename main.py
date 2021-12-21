@@ -482,10 +482,7 @@ async def reimburse(reimbursements, creator_id, total):
         raise PaymentError
 
     url = microservices.get("payments")
-    payment = requests.post(
-        url + "payments/pay",
-        json={"payments": reimbursements}
-    )
+    payment = requests.post(url + "payments/pay", json={"payments": reimbursements})
     if payment.status_code != 200:
         raise PaymentError
 
@@ -495,7 +492,9 @@ def get_reimbursements(users, price, sub_query, sub_command, sub_id):
     reimbursements = {}
     total = 0
     for i in users:
-        discounted_price = apply_discount(price, subs[sub_command.user_sub_type(i)], sub_id)
+        discounted_price = apply_discount(
+            price, subs[sub_command.user_sub_type(i)], sub_id
+        )
         total += discounted_price
         reimbursements[i] = f"{discounted_price:.12f}"[0:12]
     logger.info(reimbursements)
@@ -526,7 +525,9 @@ async def unenroll_all(
     try:
         users = enr_query.fetch_users_from_course(id=course_id, only_active=True)
 
-        reimbursements, total = get_reimbursements(users, price, sub_query, sub_command, sub_id)
+        reimbursements, total = get_reimbursements(
+            users, price, sub_query, sub_command, sub_id
+        )
 
         enr_command.unenroll_all(course_id=course_id)
         await reimburse(reimbursements, creator_id, total)
@@ -534,7 +535,14 @@ async def unenroll_all(
 
     except PaymentError as e:
         users.append(creator_id)
-        notify_users_error(users, "Reimbursements failed when cancelling course " + course_name + ", id: " + course_id + ". Please contact an Administrator.")
+        notify_users_error(
+            users,
+            "Reimbursements failed when cancelling course "
+            + course_name
+            + ", id: "
+            + course_id
+            + ". Please contact an Administrator.",
+        )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=e.message,
