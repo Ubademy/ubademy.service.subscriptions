@@ -10,7 +10,6 @@ import requests
 from fastapi import Depends, FastAPI, HTTPException, status
 from sqlalchemy.orm.session import Session
 from starlette.requests import Request
-from starlette.responses import Response
 
 from app.domain.course import CourseNotFoundError
 from app.domain.enrollment.enrollment_exception import (
@@ -477,13 +476,15 @@ def notify_users_error(users: List[str], detail: str):
     )
 
 
-def reimburse(reimbursements, creator_id, total):
+async def reimburse(reimbursements, creator_id, total):
     deposit = await pay(creator_id, total)
     if deposit.status_code != 200:
         raise PaymentError
 
     url = microservices.get("payments")
-    requests.post(url + "payments/pay", json=reimbursements)
+    payment = requests.post(url + "payments/pay", json=reimbursements)
+    if payment.status_code != 200:
+        raise PaymentError
 
 
 def get_reimbursements(users, price, sub_query, sub_command, sub_id):
@@ -518,7 +519,6 @@ async def unenroll_all(
     creator_id: str,
     price: float,
     sub_id: int,
-    response: Response,
     enr_command: EnrollmentCommandUseCase = Depends(enrollment_command_usecase),
     enr_query: EnrollmentQueryUseCase = Depends(enrollment_query_usecase),
     sub_query: SubscriptionQueryUseCase = Depends(subscription_query_usecase),
@@ -533,10 +533,23 @@ async def unenroll_all(
 
         enr_command.unenroll_all(course_id=course_id)
         if price > 0:
-            reimburse(reimbursements, creator_id, total)
+            await reimburse(reimbursements, creator_id, total)
         notify_users_successful(users, course_name)
-        response.status_code = 204
 
+    except PaymentError as e:
+        users.append(creator_id)
+        notify_users_error(
+            users,
+            "Reimbursements failed when cancelling course "
+            + course_name
+            + ", id: "
+            + course_id
+            + ". Please contact an Administrator.",
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=e.message,
+        )
     except Exception as e:
         logger.error(e)
         raise HTTPException(
