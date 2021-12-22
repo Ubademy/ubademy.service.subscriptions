@@ -530,7 +530,8 @@ async def unenroll_all(
         )
 
         enr_command.unenroll_all(course_id=course_id)
-        await reimburse(reimbursements, creator_id, total)
+        if price > 0:
+            await reimburse(reimbursements, creator_id, total)
         notify_users_successful(users, course_name)
 
     except PaymentError as e:
