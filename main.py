@@ -477,11 +477,13 @@ def notify_users_error(users: List[str], detail: str):
     )
 
 
-def reimburse(reimbursements, creator_id, total):
-    pay(creator_id, total)
+async def reimburse(reimbursements, creator_id, total):
+    deposit = await pay(creator_id, total)
+    if deposit.status_code != 200:
+        raise PaymentError
+
     url = microservices.get("payments")
-    for i in reimbursements:
-        requests.post(url + "payments/pay", json=[i])
+    requests.post(url + "payments/pay", json=reimbursements)
 
 
 def get_reimbursements(users, price, sub_query, sub_command, sub_id):
@@ -531,7 +533,7 @@ async def unenroll_all(
 
         enr_command.unenroll_all(course_id=course_id)
         if price > 0:
-            reimburse(reimbursements, creator_id, total)
+            await reimburse(reimbursements, creator_id, total)
         notify_users_successful(users, course_name)
         response.status_code = 204
 
