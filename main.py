@@ -505,7 +505,7 @@ def get_reimbursements(users, price, sub_query, sub_command, sub_id):
 
 @app.patch(
     "/subscriptions/{course_id}/enrollments",
-    status_code=status.HTTP_204_NO_CONTENT,
+    status_code=status.HTTP_200_OK,
     responses={
         status.HTTP_409_CONFLICT: {
             "model": ErrorMessageUserNotEnrolled,
