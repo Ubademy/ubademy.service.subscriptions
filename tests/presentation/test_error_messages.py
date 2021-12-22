@@ -6,7 +6,7 @@ from app.presentation.schema.enrollment.enrollment_error_message import (
     ErrorMessageUserAlreadyEnrolled,
     ErrorMessageUserNotEnrolled,
 )
-from app.presentation.schema.user.enrollment_error_message import (
+from app.presentation.schema.user.user_error_message import (
     ErrorMessageInvalidCredentials,
 )
 

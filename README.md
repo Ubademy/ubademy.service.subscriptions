@@ -1,69 +1,118 @@
 # ubademy.service.subscriptions
 [![codecov](https://codecov.io/gh/Ubademy/ubademy.service.subscriptions/branch/master/graph/badge.svg?token=QW73TC1O31)](https://codecov.io/gh/Ubademy/ubademy.service.subscriptions) [![Tests](https://github.com/Ubademy/ubademy.service.subscriptions/actions/workflows/test.yml/badge.svg)](https://github.com/Ubademy/ubademy.service.subscriptions/actions/workflows/test.yml) [![Linters](https://github.com/Ubademy/ubademy.service.subscriptions/actions/workflows/linters.yml/badge.svg)](https://github.com/Ubademy/ubademy.service.subscriptions/actions/workflows/linters.yml) [![Deploy](https://github.com/Ubademy/ubademy.service.subscriptions/actions/workflows/deploy.yml/badge.svg)](https://github.com/Ubademy/ubademy.service.subscriptions/actions/workflows/deploy.yml)
 
-This is subscriptions microservice.
+Subscriptions microservice for [Ubademy](https://ubademy.github.io/)
 
-## Technologies
+This service manages:
+* User Subscriptions
+* Course Enrollments
+
+
+For further information visit [Ubademy Subscriptions](https://ubademy.github.io/services/subscriptions)
+
+Deployed at: [ubademy-service-subscriptions](https://ubademy-service-subscriptions.herokuapp.com/docs#) :rocket:
+
+
+
+### Technologies
 
 * [FastAPI](https://fastapi.tiangolo.com/)
-* [SQLAlchemy](https://www.sqlalchemy.org/)
+* [SQLAlchemy](https://www.sqlalchemy.org/): PostgreSQL Database
 * [Poetry](https://python-poetry.org/)
 * [Docker](https://www.docker.com/)
 * [Heroku](https://www.heroku.com/)
 
-## Architecture
+### Architecture
 
 Directory structure (based on [Onion Architecture](https://jeffreypalermo.com/2008/07/the-onion-architecture-part-1/)):
 
 ```tree
 ├── main.py
+├── routes
 ├── app
 │   ├── domain
-│   │   └── course
-│   │       ├── course.py  # Entity
-│   │       ├── course_exception.py  # Exception definitions
-│   │       └── course_repository.py  # Repository interface
+│   │   ├── course
+│   │   │   └── course_exception.py
+│   │   ├── enrollment
+│   │   │   ├── enrollment.py
+│   │   │   ├── enrollment_exception.py
+│   │   │   └── enrollment_repository.py
+│   │   ├── subscription
+│   │   │   ├── subscription.py
+│   │   │   ├── subscription_exception.py
+│   │   │   └── subscription_repository.py
+│   │   └── user
+│   │       └── user_exception.py
 │   ├── infrastructure
-│   │   └── sqlite
-│   │       ├── course
-│   │       │   ├── course_dto.py  # DTO using SQLAlchemy
-│   │       │   ├── course_query_service.py  # Query service implementation
-│   │       │   └── course_repository.py  # Repository implementation
-│   │       └── database.py
+│   │   ├── enrollment
+│   │   │   ├── enrollment_dto.py
+│   │   │   ├── enrollment_query_service.py
+│   │   │   └── cenrollment_repository.py
+│   │   ├── subscription
+│   │   │   ├── subscription_dto.py
+│   │   │   ├── subscription_query_service.py
+│   │   │   └── subscription_repository.py
+│   │   └── database.py
 │   ├── presentation
 │   │   └── schema
-│   │       └── course
-│   │           └── course_error_message.py
+│   │       ├── course
+│   │       │   └── course_error_message.py
+│   │       ├── enrollment
+│   │       │   └── enrollment_error_message.py
+│   │       ├── subscription
+│   │       │   └── subscription_error_message.py
+│   │       └── user
+│   │           └── user_error_message.py
 │   └── usecase
-│       └── course
-│           ├── course_command_model.py  # Write models including schemas of the RESTFul API
-│           ├── course_command_usecase.py
-│           ├── course_query_model.py  # Read models including schemas
-│           ├── course_query_service.py  # Query service interface
-│           └── course_query_usecase.py
+│       ├── course
+│       │   └── course_query_model.py
+│       ├── enrollment
+│       │   ├── enrollment_command_usecase.py
+│       │   ├── enrollment_query_model.py
+│       │   ├── enrollment_query_service.py
+│       │   └── enrollment_query_usecase.py
+│       ├── metrics
+│       │   └── enrollment_metrics_query_model.py
+│       ├── subscription
+│       │   ├── subscription_command_usecase.py
+│       │   ├── subscription_query_model.py
+│       │   ├── subscription_query_service.py
+│       │   └── subscription_query_usecase.py
+│       └── user
+│           └── user_query_model.py
 └── tests
 ```
 
-## Run
-``` bash
-docker-compose build
+## Installation
 
-docker-compose up
+### Dependencies:
+* [python3.9](https://www.python.org/downloads/release/python-390/) and utils
+* [Docker](https://www.docker.com/)
+* [Docker-Compose](https://docs.docker.com/compose/)
+* [Poetry](https://python-poetry.org/)
+
+Once you have installed these tools, make will take care of the rest :relieved:
+
+``` bash
+make install
 ```
 
-Access api swagger at: http://127.0.0.1:8000/docs#/
+## Usage
 
-## Tests
+### Run the API locally
 ``` bash
-make test
+make run
 ```
 
-## Reformat
+### Reset Database and then run locally
 ``` bash
-make fmt
+make reset
 ```
 
-## Lint
+### Run format, tests and linters
 ``` bash
-make lint
+make checks
 ```
+
+### Access API Swagger
+Once the API is running you can check all available endpoints at [http://127.0.0.1:8000/docs#/](http://127.0.0.1:8000/docs#/)

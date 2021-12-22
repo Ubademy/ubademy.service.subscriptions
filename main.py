@@ -56,7 +56,7 @@ from app.presentation.schema.subscription.subscription_error_message import (
     ErrorMessageUserAlreadySubscribed,
     ErrorMessageUserNotSubscribed,
 )
-from app.presentation.schema.user.enrollment_error_message import (
+from app.presentation.schema.user.user_error_message import (
     ErrorMessageInvalidCredentials,
 )
 from app.usecase.course.course_query_model import CoursesListReadModel
