@@ -11,6 +11,7 @@ class TestCourseQueryModel:
             subscription_id=0,
             active=True,
             language="English",
+            country="Argentina",
             description="Learn how to program with C",
             categories=["Programming"],
             presentation_video="https://www.youtube.com/watch?v=dQw4w9WgXcQ",

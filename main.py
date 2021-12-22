@@ -496,7 +496,9 @@ def get_reimbursements(users, price, sub_query, sub_command, sub_id):
             price, subs[sub_command.user_sub_type(i)], sub_id
         )
         total += discounted_price
-        reimbursements.append({"receiverId": i, "amountInEthers": f"{discounted_price:.12f}"[0:12]})
+        reimbursements.append(
+            {"receiverId": i, "amountInEthers": f"{discounted_price:.12f}"[0:12]}
+        )
     logger.info(reimbursements)
     return reimbursements, total
 

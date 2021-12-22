@@ -76,6 +76,7 @@ course_sub_1 = CourseReadModel(
     active=True,
     subscription_id=1,
     language="English",
+    country="Argentina",
     description="Learn how to program with C",
     categories=["Programming"],
     recommendations={},
