@@ -480,7 +480,8 @@ def notify_users_error(users: List[str], detail: str):
 def reimburse(reimbursements, creator_id, total):
     pay(creator_id, total)
     url = microservices.get("payments")
-    requests.post(url + "payments/pay", json=reimbursements)
+    for i in reimbursements:
+        requests.post(url + "payments/pay", json=[i])
 
 
 def get_reimbursements(users, price, sub_query, sub_command, sub_id):
