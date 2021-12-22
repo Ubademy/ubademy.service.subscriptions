@@ -478,7 +478,10 @@ def notify_users_error(users: List[str], detail: str):
 
 
 def reimburse(reimbursements, creator_id, total):
-    pay(creator_id, total)
+    deposit = await pay(creator_id, total)
+    if deposit.status_code != 200:
+        raise PaymentError
+
     url = microservices.get("payments")
     requests.post(url + "payments/pay", json=reimbursements)
 
