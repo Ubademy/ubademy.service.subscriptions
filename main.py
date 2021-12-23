@@ -483,7 +483,7 @@ async def reimburse(reimbursements, creator_id, total):
 
     url = microservices.get("payments")
     try:
-        requests.post(url + "payments/pay", json=reimbursements, timeout=0.0000000001)
+        requests.post(url + "payments/pay", json=reimbursements, timeout=0.01,)
     except requests.exceptions.ReadTimeout:
         pass
 
