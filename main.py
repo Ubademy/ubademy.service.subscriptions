@@ -482,9 +482,10 @@ async def reimburse(reimbursements, creator_id, total):
         raise PaymentError
 
     url = microservices.get("payments")
-    payment = requests.post(url + "payments/pay", json=reimbursements)
-    if payment.status_code != 200:
-        raise PaymentError
+    try:
+        requests.post(url + "payments/pay", json=reimbursements, timeout=0.0000000001)
+    except requests.exceptions.ReadTimeout:
+        pass
 
 
 def get_reimbursements(users, price, sub_query, sub_command, sub_id):
